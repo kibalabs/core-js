@@ -14,11 +14,12 @@
     "start": "build-module --start",
     "start-dev": "build-module --start --dev"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "files": [
     "dist/*"
   ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
   "dependencies": {
     "date-fns": "^2.14.0",
     "date-fns-tz": "^1.0.10",
