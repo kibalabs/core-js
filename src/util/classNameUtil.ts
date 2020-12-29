@@ -1,5 +1,5 @@
 
-type ArgType = string | number | null | undefined;
+type ArgType = string | number | boolean | null | undefined;
 
 // NOTE(krish): this is inspired from https://github.com/lukeed/clsx/blob/master/src/index.js
 export const getClassName = (...args: ArgType[]): string => {

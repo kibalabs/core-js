@@ -8,7 +8,7 @@ import { KibaException } from '../model';
 export const JSON_DATE_FORMAT = 'yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX';
 
 export const dateFromString = (dateString: string, format?: string): Date => {
-  var parsedDate;
+  var parsedDate: Date | undefined;
   if (!format) {
     parsedDate = parseIsoDate(dateString);
   } else {
