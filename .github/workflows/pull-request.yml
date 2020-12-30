@@ -9,7 +9,7 @@ jobs:
       run:
         working-directory: .
     env:
-      DOCKER_IMAGE: core-react-build
+      DOCKER_IMAGE: core-js-build
     steps:
     - name: Check out the repo
       uses: actions/checkout@v2
