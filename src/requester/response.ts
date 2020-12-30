@@ -2,7 +2,7 @@ export class KibaResponse {
   public status: number;
   public headers: Record<string, string> = {};
   public date: Date;
-  public content: string = '';
+  public content = '';
 
   public constructor(status: number, headers: Record<string, string>, date: Date, content: string) {
     this.status = status;

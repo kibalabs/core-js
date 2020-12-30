@@ -1,4 +1,4 @@
-export const objectToString = (value: object | null | undefined): string | null | undefined => {
+export const objectToString = (value: Record<string, unknown> | null | undefined): string | null | undefined => {
   if (value === undefined) {
     return undefined;
   }
@@ -8,7 +8,7 @@ export const objectToString = (value: object | null | undefined): string | null 
   return JSON.stringify(value);
 };
 
-export const objectFromString = (value: string | null | undefined): object | null | undefined => {
+export const objectFromString = (value: string | null | undefined): Record<string, unknown> | null | undefined => {
   if (value === undefined) {
     return undefined;
   }
@@ -66,9 +66,9 @@ export const integerToString = (value: number | null | undefined): string | null
 export const integerFromString = (value: string | null | undefined): number | null | undefined => {
   const number = numberFromString(value);
   return number ? Math.round(number) : number;
-}
+};
 
-export const stringListToString = (value: string[] | null | undefined, delimiter: string = ','): string | undefined => {
+export const stringListToString = (value: string[] | null | undefined, delimiter = ','): string | undefined => {
   if (value === undefined) {
     return undefined;
   }
@@ -78,7 +78,7 @@ export const stringListToString = (value: string[] | null | undefined, delimiter
   return value.join(delimiter);
 };
 
-export const stringListFromString = (value: string | null | undefined, delimiter: string = ','): string[] | undefined => {
+export const stringListFromString = (value: string | null | undefined, delimiter = ','): string[] | undefined => {
   if (value === undefined) {
     return undefined;
   }

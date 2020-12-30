@@ -8,7 +8,7 @@ export function merge<T>(base: T, ...partials: (RecursivePartial<T> | undefined)
 }
 
 export function mergePartial<T>(...partials: (RecursivePartial<T> | undefined)[]): RecursivePartial<T> {
-  var base = {} as RecursivePartial<T>;
+  let base = {} as RecursivePartial<T>;
   partials.forEach((partial?: RecursivePartial<T>): void => {
     if (!partial) {
       return;

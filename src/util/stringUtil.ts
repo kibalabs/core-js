@@ -13,7 +13,7 @@ export const generateRandomString = (length: number, characters: string = CHARAC
   return result;
 };
 
-export const generateUUID = (shouldIncludeDashes: boolean = true): string => {
+export const generateUUID = (shouldIncludeDashes = true): string => {
   let uuid = generateRandomString(32, CHARACTERS_HEX);
   if (shouldIncludeDashes) {
     uuid = [

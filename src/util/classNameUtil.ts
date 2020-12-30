@@ -14,4 +14,4 @@ export const getClassName = (...args: ArgType[]): string => {
   flattenedValues = Array.from(new Set(flattenedValues));
   flattenedValues = flattenedValues.reverse();
   return flattenedValues.join(' ');
-}
+};

@@ -4,12 +4,12 @@ export class KibaRequest {
   public method: RestMethod;
   public url: string;
   public headers: Record<string, string>;
-  public data: Record<string, any> | null;
+  public data: Record<string, unknown> | null;
   public formData: FormData | null;
   public date: Date;
   public timeoutSeconds: number | null;
 
-  public constructor(method: RestMethod, url: string, headers?: Record<string, string>, data?: Record<string, any>, formData?: FormData, date?: Date, timeoutSeconds?: number) {
+  public constructor(method: RestMethod, url: string, headers?: Record<string, string>, data?: Record<string, unknown>, formData?: FormData, date?: Date, timeoutSeconds?: number) {
     this.method = method;
     this.url = url;
     this.headers = headers || {};
@@ -18,5 +18,4 @@ export class KibaRequest {
     this.date = date || new Date();
     this.timeoutSeconds = timeoutSeconds && timeoutSeconds > 0 ? timeoutSeconds : null;
   }
-
 }
