@@ -1,4 +1,5 @@
 /* eslint-disable max-classes-per-file */
+/// <reference lib="dom" />
 import { KibaException } from '../model/kibaException';
 import { timeoutPromise } from '../util/promiseUtil';
 import { KibaRequest } from './request';
@@ -48,7 +49,7 @@ export class Requester {
   }
 
   public makeFormRequest = async (url: string, data?: FormData, headers?: Record<string, string>, timeout?: number): Promise<KibaResponse> => {
-    const request = new KibaRequest(RestMethod.POST, url, headers, null, data, new Date(), timeout);
+    const request = new KibaRequest(RestMethod.POST, url, headers, undefined, data, new Date(), timeout);
     return this.makeRequestInternal(request);
   }
 
@@ -81,7 +82,7 @@ export class Requester {
     };
     if (request.method === RestMethod.GET || request.method === RestMethod.DELETE) {
       if (request.data) {
-        url.search = new URLSearchParams(request.data).toString();
+        url.search = new URLSearchParams(request.data as Record<string, string>).toString();
       }
     } else {
       fetchConfig.body = request.data ? JSON.stringify(request.data) : request.formData;
@@ -90,7 +91,10 @@ export class Requester {
       .catch((error): void => {
         throw new KibaException(`The request was made but no response was received: [${error.code}] "${error.message}"`);
       })
-      .then(async (response: Response): Promise<KibaResponse> => {
+      .then(async (response: Response | void): Promise<KibaResponse> => {
+        if (!response) {
+          throw new KibaException(`The request was made but no response was received.`);
+        }
         const content = await response.text();
         const headers: Record<string, string> = {};
         response.headers.forEach((value: string, key: string): void => {

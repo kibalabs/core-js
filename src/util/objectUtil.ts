@@ -4,6 +4,7 @@ import deepEqual from 'fast-deep-equal';
 import { RecursivePartial } from '.';
 
 export function merge<T>(base: T, ...partials: (RecursivePartial<T> | undefined)[]): T {
+  // @ts-ignore
   return deepmerge(base, mergePartial(...partials));
 }
 
@@ -13,6 +14,7 @@ export function mergePartial<T>(...partials: (RecursivePartial<T> | undefined)[]
     if (!partial) {
       return;
     }
+    // @ts-ignore
     base = deepmerge(base, partial);
   });
   return base;
