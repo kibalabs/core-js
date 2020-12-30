@@ -93,7 +93,7 @@ export class Requester {
       })
       .then(async (response: Response | void): Promise<KibaResponse> => {
         if (!response) {
-          throw new KibaException(`The request was made but no response was received.`);
+          throw new KibaException('The request was made but no response was received.');
         }
         const content = await response.text();
         const headers: Record<string, string> = {};
