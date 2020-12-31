@@ -1,7 +1,7 @@
 
 export const humanFileSize = (size: number, decimals = 1): string => {
   if (size === 0) {
-    return '0B';
+    return '0 B';
   }
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
   const bucketIndex = Math.floor(Math.log(size) / Math.log(1024));
