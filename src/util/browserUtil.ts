@@ -8,7 +8,7 @@ export const downloadFileFromBrowser = async (filename: string, content: string)
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-}
+};
 
 // see https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API#Example
 export const isDocumentVisible = (): boolean => {

@@ -1,14 +1,18 @@
-import { RestMethod } from './restMethod';
+/* eslint-disable max-classes-per-file */
+/// <reference lib="dom" />
 import { KibaException } from '../model/kibaException';
+import { timeoutPromise } from '../util/promiseUtil';
 import { KibaRequest } from './request';
 import { KibaResponse } from './response';
-import { timeoutPromise } from '../util/promiseUtil';
+import { RestMethod } from './restMethod';
 
 export class RequesterModifier {
+  // eslint-disable-next-line class-methods-use-this
   public modifyRequest(request: KibaRequest): KibaRequest {
     return request;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   public modifyResponse(response: KibaResponse): KibaResponse {
     return response;
   }
@@ -28,36 +32,38 @@ export class Requester {
   }
 
   private modifyRequest = (request: KibaRequest): KibaRequest => {
-    return this.modifiers.reduce((request: KibaRequest, modifier: RequesterModifier): KibaRequest => {
-      return modifier.modifyRequest(request);
+    return this.modifiers.reduce((currentRequest: KibaRequest, modifier: RequesterModifier): KibaRequest => {
+      return modifier.modifyRequest(currentRequest);
     }, request);
   }
 
   private modifyResponse = (response: KibaResponse): KibaResponse => {
-    return this.modifiers.reduce((response: KibaResponse, modifier: RequesterModifier): KibaResponse => {
-      return modifier.modifyResponse(response);
+    return this.modifiers.reduce((currentResponse: KibaResponse, modifier: RequesterModifier): KibaResponse => {
+      return modifier.modifyResponse(currentResponse);
     }, response);
   }
 
-  public makeRequest = async (method: RestMethod, url: string, data?: Record<string, any>, headers?: Record<string, string>, timeout?: number): Promise<KibaResponse> => {
-    let request = new KibaRequest(method, url, headers, data, undefined, new Date(), timeout);
+  public makeRequest = async (method: RestMethod, url: string, data?: Record<string, unknown>, headers?: Record<string, string>, timeout?: number): Promise<KibaResponse> => {
+    const request = new KibaRequest(method, url, headers, data, undefined, new Date(), timeout);
     return this.makeRequestInternal(request);
   }
 
   public makeFormRequest = async (url: string, data?: FormData, headers?: Record<string, string>, timeout?: number): Promise<KibaResponse> => {
-    let request = new KibaRequest(RestMethod.POST, url, headers, null, data, new Date(), timeout);
+    const request = new KibaRequest(RestMethod.POST, url, headers, undefined, data, new Date(), timeout);
     return this.makeRequestInternal(request);
   }
 
   private makeRequestInternal = async (request: KibaRequest): Promise<KibaResponse> => {
-    var request = this.modifyRequest(request);
-    var response = await this.makeFetchRequest(request);
+    const modifiedRequest = this.modifyRequest(request);
+    let response = await this.makeFetchRequest(modifiedRequest);
     response = this.modifyResponse(response);
     if (response.status >= 400 && response.status < 600) {
       let errorContent = null;
       try {
         errorContent = JSON.parse(response.content);
-      } catch {}
+      } catch {
+        // no-op
+      }
       if (errorContent && 'message' in errorContent) {
         throw new KibaException(errorContent.message, response.status);
       }
@@ -67,14 +73,16 @@ export class Requester {
   }
 
   private makeFetchRequest = async (request: KibaRequest): Promise<KibaResponse> => {
-    var url = new URL(request.url);
+    const url = new URL(request.url);
+    // NOTE(krishan711): RequestInit comes from the DOM which isn't used be default in typescript typings
+    // eslint-disable-next-line no-undef
     const fetchConfig: RequestInit = {
       method: request.method.toUpperCase(),
-      headers: {...this.headers, ...(request.headers || {})},
+      headers: { ...this.headers, ...(request.headers || {}) },
     };
     if (request.method === RestMethod.GET || request.method === RestMethod.DELETE) {
       if (request.data) {
-        url.search = new URLSearchParams(request.data).toString();
+        url.search = new URLSearchParams(request.data as Record<string, string>).toString();
       }
     } else {
       fetchConfig.body = request.data ? JSON.stringify(request.data) : request.formData;
@@ -83,7 +91,10 @@ export class Requester {
       .catch((error): void => {
         throw new KibaException(`The request was made but no response was received: [${error.code}] "${error.message}"`);
       })
-      .then(async (response: Response): Promise<KibaResponse> => {
+      .then(async (response: Response | void): Promise<KibaResponse> => {
+        if (!response) {
+          throw new KibaException('The request was made but no response was received.');
+        }
         const content = await response.text();
         const headers: Record<string, string> = {};
         response.headers.forEach((value: string, key: string): void => {
@@ -91,11 +102,11 @@ export class Requester {
             console.warn(`key ${key} will be overwritten. TODO(krish): Implement joining keys!`);
           }
           headers[key] = value;
-        })
+        });
         return new KibaResponse(response.status, headers, new Date(), content);
       });
     const response = await (request.timeoutSeconds ? timeoutPromise(request.timeoutSeconds, fetchOperation) : fetchOperation);
-    return response
+    return response;
   }
 
   // public makeAxiosRequest = async (request: KibaRequest): Promise<KibaResponse> => {
@@ -118,5 +129,4 @@ export class Requester {
   //   const response = new KibaResponse(axiosResponse.status, axiosResponse.headers, new Date(), JSON.stringify(axiosResponse.data));
   //   return response;
   // }
-
 }

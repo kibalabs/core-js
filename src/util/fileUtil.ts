@@ -1,11 +1,10 @@
 
-export const humanFileSize = (size: number): string => {
-  if (size < 1024) {
-    return size + ' B';
+export const humanFileSize = (size: number, decimals = 1): string => {
+  if (size === 0) {
+    return '0 B';
   }
-  const i = Math.floor(Math.log(size) / Math.log(1024));
-  const num = (size / Math.pow(1024, i));
-  const round = Math.round(num);
-  const value = round < 10 ? num.toFixed(2) : round < 100 ? num.toFixed(1) : round;
-  return `${value} ${'KMGTPEZY'[i-1]}B`;
-}
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  const bucketIndex = Math.floor(Math.log(size) / Math.log(1024));
+  const formattedSize = parseFloat((size / (1024 ** bucketIndex)).toFixed(decimals < 0 ? 0 : decimals));
+  return `${formattedSize} ${sizes[bucketIndex]}`;
+};

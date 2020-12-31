@@ -4,7 +4,7 @@ import { KibaException } from '../model/kibaException';
 export const timeoutPromise = <T>(timeoutSeconds: number, promise: Promise<T>): Promise<T> => {
   return new Promise((resolve, reject) => {
     const timeoutId = setTimeout(() => {
-      reject(new KibaException('TIMEOUT'))
+      reject(new KibaException('TIMEOUT'));
     }, timeoutSeconds * 1000);
     promise.then(
       (res) => {
@@ -14,7 +14,7 @@ export const timeoutPromise = <T>(timeoutSeconds: number, promise: Promise<T>): 
       (err) => {
         clearTimeout(timeoutId);
         reject(err);
-      }
+      },
     );
-  })
-}
+  });
+};
