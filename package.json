@@ -16,7 +16,8 @@
     "clean": "rm -rf ./node_modules ./package-lock.json ./dist",
     "lint": "lint",
     "lint-fix": "lint --fix",
-    "type-check": "type-check"
+    "type-check": "type-check",
+    "publish-next": "kiba-publish --next"
   },
   "files": [
     "dist/*"
