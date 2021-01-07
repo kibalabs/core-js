@@ -1,4 +1,3 @@
-/* eslint-disable max-classes-per-file */
 import { Requester, RestMethod } from '../requester';
 
 // TODO(krishan711): should this be an interface?
