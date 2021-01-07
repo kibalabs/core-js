@@ -1,4 +1,3 @@
-/* eslint-disable max-classes-per-file */
 /// <reference lib="dom" />
 import { KibaException } from '../model/kibaException';
 import { timeoutPromise } from '../util/promiseUtil';
