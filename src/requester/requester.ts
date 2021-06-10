@@ -20,10 +20,12 @@ export class RequesterModifier {
 export class Requester {
   private headers: Record<string, string>;
   private modifiers: RequesterModifier[];
+  private shouldIncludeCrossSiteCredentials: boolean;
 
-  public constructor(headers?: Record<string, string>, modifiers?: RequesterModifier[]) {
+  public constructor(headers?: Record<string, string>, modifiers?: RequesterModifier[], shouldIncludeCrossSiteCredentials = true) {
     this.headers = headers || {};
     this.modifiers = modifiers || [];
+    this.shouldIncludeCrossSiteCredentials = shouldIncludeCrossSiteCredentials;
   }
 
   public addModifier = (modifier: RequesterModifier): void => {
@@ -73,18 +75,34 @@ export class Requester {
 
   private makeFetchRequest = async (request: KibaRequest): Promise<KibaResponse> => {
     const url = new URL(request.url);
-    // NOTE(krishan711): RequestInit comes from the DOM which isn't used be default in typescript typings
+    const headers = new Headers({ ...this.headers, ...(request.headers || {}) });
+    // NOTE(krishan711): RequestInit comes from the DOM which isn't used by default in typescript typings
     // eslint-disable-next-line no-undef
     const fetchConfig: RequestInit = {
       method: request.method.toUpperCase(),
-      headers: { ...this.headers, ...(request.headers || {}) },
+      headers,
+      credentials: this.shouldIncludeCrossSiteCredentials ? 'include' : 'same-origin',
     };
     if (request.method === RestMethod.GET || request.method === RestMethod.DELETE) {
       if (request.data) {
         url.search = new URLSearchParams(request.data as Record<string, string>).toString();
       }
     } else {
-      fetchConfig.body = request.data ? JSON.stringify(request.data) : request.formData;
+      // TODO(krishan711): find a better place for this
+      const currentContentHeader = headers.get('Content-Type');
+      if (request.data) {
+        fetchConfig.body = JSON.stringify(request.data);
+        if (currentContentHeader && currentContentHeader !== 'application/json') {
+          console.warn(`Overwriting content-type header for request from ${currentContentHeader} to application/json`);
+        }
+        headers.set('content-type', 'application/json');
+      } else if (request.formData) {
+        fetchConfig.body = request.formData;
+        if (currentContentHeader && currentContentHeader !== 'multipart/form-data') {
+          console.warn(`Overwriting content-type header for request from ${currentContentHeader} to multipart/form-data`);
+        }
+        headers.set('content-type', 'multipart/form-data');
+      }
     }
     const fetchOperation = window.fetch(url.toString(), fetchConfig)
       .catch((error): void => {
@@ -95,37 +113,16 @@ export class Requester {
           throw new KibaException('The request was made but no response was received.');
         }
         const content = await response.text();
-        const headers: Record<string, string> = {};
+        const responseHeaders: Record<string, string> = {};
         response.headers.forEach((value: string, key: string): void => {
-          if (headers[key]) {
+          if (responseHeaders[key]) {
             console.warn(`key ${key} will be overwritten. TODO(krish): Implement joining keys!`);
           }
-          headers[key] = value;
+          responseHeaders[key] = value;
         });
-        return new KibaResponse(response.status, headers, new Date(), content);
+        return new KibaResponse(response.status, responseHeaders, new Date(), content);
       });
     const response = await (request.timeoutSeconds ? timeoutPromise(request.timeoutSeconds, fetchOperation) : fetchOperation);
     return response;
   }
-
-  // public makeAxiosRequest = async (request: KibaRequest): Promise<KibaResponse> => {
-  //   const axiosRequest: AxiosRequestConfig = {
-  //     method: request.method,
-  //     url: request.url,
-  //     data: request.data,
-  //     headers: {...this.headers, ...(request.headers || {})},
-  //     timeout: request.timeoutSeconds ? request.timeoutSeconds * 1000 : undefined,
-  //   };
-  //   let axiosResponse = null;
-  //   try {
-  //     axiosResponse = await axios(axiosRequest)
-  //   } catch (error) {
-  //     axiosResponse = error.response;
-  //     if (!axiosResponse && error.request) {
-  //       throw new KibaException(`The request was made but no response was received: [${error.code}] "${error.message}"`);
-  //     }
-  //   }
-  //   const response = new KibaResponse(axiosResponse.status, axiosResponse.headers, new Date(), JSON.stringify(axiosResponse.data));
-  //   return response;
-  // }
 }
