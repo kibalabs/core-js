@@ -22,7 +22,7 @@ export class Requester {
   private modifiers: RequesterModifier[];
   private shouldIncludeCrossSiteCredentials: boolean;
 
-  public constructor(headers?: Record<string, string>, modifiers?: RequesterModifier[], shouldIncludeCrossSiteCredentials: boolean = true) {
+  public constructor(headers?: Record<string, string>, modifiers?: RequesterModifier[], shouldIncludeCrossSiteCredentials = true) {
     this.headers = headers || {};
     this.modifiers = modifiers || [];
     this.shouldIncludeCrossSiteCredentials = shouldIncludeCrossSiteCredentials;
@@ -75,13 +75,13 @@ export class Requester {
 
   private makeFetchRequest = async (request: KibaRequest): Promise<KibaResponse> => {
     const url = new URL(request.url);
-    const headers = new Headers({ ...this.headers, ...(request.headers || {}) })
+    const headers = new Headers({ ...this.headers, ...(request.headers || {}) });
     // NOTE(krishan711): RequestInit comes from the DOM which isn't used by default in typescript typings
     // eslint-disable-next-line no-undef
     const fetchConfig: RequestInit = {
       method: request.method.toUpperCase(),
-      headers: headers,
-      credentials: this.shouldIncludeCrossSiteCredentials ? "include" : "same-origin",
+      headers,
+      credentials: this.shouldIncludeCrossSiteCredentials ? 'include' : 'same-origin',
     };
     if (request.method === RestMethod.GET || request.method === RestMethod.DELETE) {
       if (request.data) {
@@ -113,17 +113,16 @@ export class Requester {
           throw new KibaException('The request was made but no response was received.');
         }
         const content = await response.text();
-        const headers: Record<string, string> = {};
+        const responseHeaders: Record<string, string> = {};
         response.headers.forEach((value: string, key: string): void => {
-          if (headers[key]) {
+          if (responseHeaders[key]) {
             console.warn(`key ${key} will be overwritten. TODO(krish): Implement joining keys!`);
           }
-          headers[key] = value;
+          responseHeaders[key] = value;
         });
-        return new KibaResponse(response.status, headers, new Date(), content);
+        return new KibaResponse(response.status, responseHeaders, new Date(), content);
       });
     const response = await (request.timeoutSeconds ? timeoutPromise(request.timeoutSeconds, fetchOperation) : fetchOperation);
     return response;
   }
-
 }
