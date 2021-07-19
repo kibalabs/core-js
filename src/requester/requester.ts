@@ -86,7 +86,11 @@ export class Requester {
     if (request.method === RestMethod.GET || request.method === RestMethod.DELETE) {
       if (request.data) {
         const requestData = ({ ...request.data }) as Record<string, string>;
-        Object.keys(requestData).forEach((key) => requestData[key] === undefined && delete requestData[key]);
+        Object.keys(requestData).forEach((key: string): void => {
+          if (requestData[key] === undefined) {
+            delete requestData[key];
+          }
+        });
         url.search = new URLSearchParams(requestData).toString();
       }
     } else {
