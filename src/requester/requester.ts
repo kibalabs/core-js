@@ -98,10 +98,11 @@ export class Requester {
         headers.set('content-type', 'application/json');
       } else if (request.formData) {
         fetchConfig.body = request.formData;
-        if (currentContentHeader && currentContentHeader !== 'multipart/form-data') {
-          console.warn(`Overwriting content-type header for request from ${currentContentHeader} to multipart/form-data`);
-        }
-        headers.set('content-type', 'multipart/form-data');
+        // NOTE(krishan711): I don't know whether this should be set or not. For S3 uploads it cannot be set!
+        // if (currentContentHeader && currentContentHeader !== 'multipart/form-data') {
+        //   console.warn(`Overwriting content-type header for request from ${currentContentHeader} to multipart/form-data`);
+        // }
+        // headers.set('content-type', 'multipart/form-data');
       }
     }
     const fetchOperation = window.fetch(url.toString(), fetchConfig)
