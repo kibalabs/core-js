@@ -7,3 +7,4 @@ export * from './promiseUtil';
 export * from './serializationUtil';
 export * from './stringUtil';
 export * from './typeUtil';
+export * from './urlUtils'
