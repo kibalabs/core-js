@@ -12,7 +12,7 @@ export const downloadFileFromBrowser = async (filename: string, content: string)
 
 // see https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API#Example
 export const isDocumentVisible = (): boolean => {
-  if (typeof document === "undefined") {
+  if (typeof document === 'undefined') {
     return false;
   }
 
@@ -31,7 +31,7 @@ export const isDocumentVisible = (): boolean => {
 };
 
 export const isMobile = (): boolean => {
-  if (typeof navigator === "undefined") {
+  if (typeof navigator === 'undefined') {
     return false;
   }
 
