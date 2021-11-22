@@ -33,6 +33,20 @@ export const dateToString = (date: Date, format: string = JSON_DATE_FORMAT, conv
   return formattedDate;
 };
 
+export const isSameDay = (date1: Date, date2: Date): boolean => {
+  return date1.getDate() === date2.getDate() && date1.getMonth() === date2.getMonth() && date1.getFullYear() === date2.getFullYear();
+};
+
+export const isToday = (date: Date): boolean => {
+  return isSameDay(date, new Date());
+};
+
+export const isYesterday = (date: Date): boolean => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return isSameDay(date, yesterday);
+};
+
 // export const guessTimezone = (): string => {
 //   if (Intl?.DateTimeFormat()?.resolvedOptions()?.timeZone) {
 //     return Intl.DateTimeFormat().resolvedOptions().timeZone;
