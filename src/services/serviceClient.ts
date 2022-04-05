@@ -2,9 +2,10 @@ import { Requester, RestMethod } from '../requester';
 
 // TODO(krishan711): should this be an interface?
 export class RequestData {
+  // eslint-disable-next-line class-methods-use-this
   public toObject = (): Record<string, unknown> => {
     return {};
-  }
+  };
 }
 
 // TODO(krishan711): should this be an interface?
@@ -31,5 +32,5 @@ export class ServiceClient {
     const response = await this.requester.makeRequest(method, url, request?.toObject());
     // @ts-ignore
     return responseClass ? responseClass.fromObject(JSON.parse(response.content)) : null;
-  }
+  };
 }

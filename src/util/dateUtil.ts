@@ -47,6 +47,12 @@ export const isYesterday = (date: Date): boolean => {
   return isSameDay(date, yesterday);
 };
 
+export const addDays = (date: Date, days: number): Date => {
+  const newDate = new Date(date.getTime());
+  newDate.setDate(newDate.getDate() + days);
+  return newDate;
+};
+
 // export const guessTimezone = (): string => {
 //   if (Intl?.DateTimeFormat()?.resolvedOptions()?.timeZone) {
 //     return Intl.DateTimeFormat().resolvedOptions().timeZone;

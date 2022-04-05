@@ -30,29 +30,29 @@ export class Requester {
 
   public addModifier = (modifier: RequesterModifier): void => {
     this.modifiers.push(modifier);
-  }
+  };
 
   private modifyRequest = (request: KibaRequest): KibaRequest => {
     return this.modifiers.reduce((currentRequest: KibaRequest, modifier: RequesterModifier): KibaRequest => {
       return modifier.modifyRequest(currentRequest);
     }, request);
-  }
+  };
 
   private modifyResponse = (response: KibaResponse): KibaResponse => {
     return this.modifiers.reduce((currentResponse: KibaResponse, modifier: RequesterModifier): KibaResponse => {
       return modifier.modifyResponse(currentResponse);
     }, response);
-  }
+  };
 
   public makeRequest = async (method: RestMethod, url: string, data?: Record<string, unknown>, headers?: Record<string, string>, timeout?: number): Promise<KibaResponse> => {
     const request = new KibaRequest(method, url, headers, data, undefined, new Date(), timeout);
     return this.makeRequestInternal(request);
-  }
+  };
 
   public makeFormRequest = async (url: string, data?: FormData, headers?: Record<string, string>, timeout?: number): Promise<KibaResponse> => {
     const request = new KibaRequest(RestMethod.POST, url, headers, undefined, data, new Date(), timeout);
     return this.makeRequestInternal(request);
-  }
+  };
 
   private makeRequestInternal = async (request: KibaRequest): Promise<KibaResponse> => {
     const modifiedRequest = this.modifyRequest(request);
@@ -71,7 +71,7 @@ export class Requester {
       throw new KibaException(response.content, response.status);
     }
     return response;
-  }
+  };
 
   private makeFetchRequest = async (request: KibaRequest): Promise<KibaResponse> => {
     const url = new URL(request.url);
@@ -131,5 +131,5 @@ export class Requester {
       });
     const response = await (request.timeoutSeconds ? timeoutPromise(request.timeoutSeconds, fetchOperation) : fetchOperation);
     return response;
-  }
+  };
 }
