@@ -1,3 +1,6 @@
+export const isBrowser = (): boolean => {
+  return typeof document !== 'undefined';
+}
 
 export const downloadFileFromBrowser = async (filename: string, content: string): Promise<void> => {
   const blob = new Blob([content]);
@@ -12,7 +15,7 @@ export const downloadFileFromBrowser = async (filename: string, content: string)
 
 // see https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API#Example
 export const isDocumentVisible = (): boolean => {
-  if (typeof document === 'undefined') {
+  if (!isBrowser()) {
     return false;
   }
 
