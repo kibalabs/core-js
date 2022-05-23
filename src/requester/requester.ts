@@ -111,7 +111,7 @@ export class Requester {
         // headers.set('content-type', 'multipart/form-data');
       }
     }
-    const fetchOperation = window.fetch(url.toString(), fetchConfig)
+    const fetchOperation = fetch(url.toString(), fetchConfig)
       .catch((error): void => {
         throw new KibaException(`The request was made but no response was received: [${error.code}] "${error.message}"`);
       })
