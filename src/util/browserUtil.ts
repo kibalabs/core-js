@@ -1,6 +1,6 @@
 export const isBrowser = (): boolean => {
   return typeof document !== 'undefined';
-}
+};
 
 export const downloadFileFromBrowser = async (filename: string, content: string): Promise<void> => {
   const blob = new Blob([content]);
