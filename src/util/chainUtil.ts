@@ -3,7 +3,6 @@ import { BigNumber } from '@ethersproject/bignumber';
 
 import { longFormatNumber, shortFormatNumber } from './numberUtil';
 
-
 export const ETHER = BigNumber.from('1000000000000000000');
 
 export const etherToNumber = (value: BigNumber): number => {
