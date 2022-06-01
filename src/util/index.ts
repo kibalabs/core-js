@@ -10,3 +10,4 @@ export * from './serializationUtil';
 export * from './stringUtil';
 export * from './typeUtil';
 export * from './urlUtils';
+export * from './chainUtil';
