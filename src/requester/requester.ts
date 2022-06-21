@@ -44,6 +44,26 @@ export class Requester {
     }, response);
   };
 
+  public getRequest = async (url: string, data?: Record<string, unknown>, headers?: Record<string, string>, timeout?: number): Promise<KibaResponse> => {
+    const request = new KibaRequest(RestMethod.GET, url, headers, data, undefined, new Date(), timeout);
+    return this.makeRequestInternal(request);
+  };
+
+  public postRequest = async (url: string, data?: Record<string, unknown>, headers?: Record<string, string>, timeout?: number): Promise<KibaResponse> => {
+    const request = new KibaRequest(RestMethod.POST, url, headers, data, undefined, new Date(), timeout);
+    return this.makeRequestInternal(request);
+  };
+
+  public putRequest = async (url: string, data?: Record<string, unknown>, headers?: Record<string, string>, timeout?: number): Promise<KibaResponse> => {
+    const request = new KibaRequest(RestMethod.PUT, url, headers, data, undefined, new Date(), timeout);
+    return this.makeRequestInternal(request);
+  };
+
+  public deleteRequest = async (url: string, data?: Record<string, unknown>, headers?: Record<string, string>, timeout?: number): Promise<KibaResponse> => {
+    const request = new KibaRequest(RestMethod.DELETE, url, headers, data, undefined, new Date(), timeout);
+    return this.makeRequestInternal(request);
+  };
+
   public makeRequest = async (method: RestMethod, url: string, data?: Record<string, unknown>, headers?: Record<string, string>, timeout?: number): Promise<KibaResponse> => {
     const request = new KibaRequest(method, url, headers, data, undefined, new Date(), timeout);
     return this.makeRequestInternal(request);
@@ -51,6 +71,11 @@ export class Requester {
 
   public makeFormRequest = async (url: string, data?: FormData, headers?: Record<string, string>, timeout?: number): Promise<KibaResponse> => {
     const request = new KibaRequest(RestMethod.POST, url, headers, undefined, data, new Date(), timeout);
+    return this.makeRequestInternal(request);
+  };
+
+  public makeFormPutRequest = async (url: string, data?: FormData, headers?: Record<string, string>, timeout?: number): Promise<KibaResponse> => {
+    const request = new KibaRequest(RestMethod.PUT, url, headers, undefined, data, new Date(), timeout);
     return this.makeRequestInternal(request);
   };
 
@@ -104,10 +129,9 @@ export class Requester {
         headers.set('content-type', 'application/json');
       } else if (request.formData) {
         fetchConfig.body = request.formData;
-        // NOTE(krishan711): I don't know whether this should be set or not. For S3 uploads it cannot be set!
-        // if (currentContentHeader && currentContentHeader !== 'multipart/form-data') {
-        //   console.warn(`Overwriting content-type header for request from ${currentContentHeader} to multipart/form-data`);
-        // }
+        // NOTE(krishan711): I don't know whether this should be set or not.
+        // For S3 uploads it cannot be set as the file type is set already
+        // For azure uploads the content-type should be set by the caller to the file type
         // headers.set('content-type', 'multipart/form-data');
       }
     }
