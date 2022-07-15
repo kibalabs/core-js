@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 import { KibaException } from '../model/kibaException';
 import { timeoutPromise } from '../util/promiseUtil';
+import { createSearchParams } from '../util/urlUtils';
 import { KibaRequest } from './request';
 import { KibaResponse } from './response';
 import { RestMethod } from './restMethod';
@@ -116,7 +117,7 @@ export class Requester {
             delete requestData[key];
           }
         });
-        url.search = new URLSearchParams(requestData).toString();
+        url.search = createSearchParams(requestData).toString();
       }
     } else {
       // TODO(krishan711): find a better place for this

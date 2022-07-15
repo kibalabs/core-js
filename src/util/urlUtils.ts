@@ -23,3 +23,17 @@ export const getLinkableUrl = (url: string): string => {
 export const resolveUrl = (url: string): string => {
   return url.startsWith('ipfs://') ? url.replace('ipfs://', 'https://pablo-images.kibalabs.com/v1/ipfs/') : url;
 };
+
+export const createSearchParams = (params: { [key: string]: string | string[] }): URLSearchParams => {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]: [string, string | string[]]): void => {
+    if (Array.isArray(value)) {
+      value.forEach((innerValue: string): void => {
+        searchParams.append(key, innerValue);
+      });
+    } else {
+      searchParams.append(key, value);
+    }
+  });
+  return searchParams;
+};
