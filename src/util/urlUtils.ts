@@ -36,4 +36,4 @@ export const createSearchParams = (params: { [key: string]: string | string[] })
     }
   });
   return searchParams;
-}
+};
