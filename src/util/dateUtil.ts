@@ -1,5 +1,8 @@
-import { addMinutes, isValid as isValidDate, parse as parseDate, parseISO as parseIsoDate } from 'date-fns';
-import { format as formatDate } from 'date-fns-tz';
+import formatDate from 'date-fns-tz/format';
+import addMinutes from 'date-fns/addMinutes';
+import isValidDate from 'date-fns/isValid';
+import parseDate from 'date-fns/parse';
+import parseIsoDate from 'date-fns/parseISO';
 // add to package.json if needed: "jstimezonedetect": "^1.0.7"
 // import jstz from 'jstimezonedetect';
 
