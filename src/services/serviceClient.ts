@@ -20,7 +20,7 @@ type Constructor<T = Record<string, unknown>> = new (...args: any[]) => T;
 
 export class ServiceClient {
   protected requester: Requester;
-  protected baseUrl: string;
+  public baseUrl: string;
 
   public constructor(requester: Requester, baseUrl: string) {
     this.requester = requester;
