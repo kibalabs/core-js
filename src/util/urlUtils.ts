@@ -37,3 +37,11 @@ export const createSearchParams = (params: { [key: string]: string | string[] })
   });
   return searchParams;
 };
+
+export const updateQueryString = (url: string, values: Record<string, string | number | boolean>): string => {
+  const newUrl = new URL(url);
+  Object.keys(values).forEach((key: string): void => {
+    newUrl.searchParams.set(key, String(values[key]));
+  })
+  return newUrl.toString();
+}
