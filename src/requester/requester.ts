@@ -1,10 +1,10 @@
 /// <reference lib="dom" />
-import { KibaException } from '../model/kibaException';
-import { timeoutPromise } from '../util/promiseUtil';
-import { createSearchParams } from '../util/urlUtils';
 import { KibaRequest } from './request';
 import { KibaResponse } from './response';
 import { RestMethod } from './restMethod';
+import { KibaException } from '../model/kibaException';
+import { timeoutPromise } from '../util/promiseUtil';
+import { createSearchParams } from '../util/urlUtils';
 
 export class RequesterModifier {
   // eslint-disable-next-line class-methods-use-this
