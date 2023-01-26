@@ -42,6 +42,6 @@ export const updateQueryString = (url: string, values: Record<string, string | n
   const newUrl = new URL(url);
   Object.keys(values).forEach((key: string): void => {
     newUrl.searchParams.set(key, String(values[key]));
-  })
+  });
   return newUrl.toString();
-}
+};
