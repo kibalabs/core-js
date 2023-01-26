@@ -27,7 +27,7 @@ security-check-ci:
 	@ echo "Not Supported"
 
 build:
-	@ npx build-component
+	@ npx build-module
 
 build-ssr:
 	@ echo "Not Supported"
@@ -36,10 +36,10 @@ build-static:
 	@ echo "Not Supported"
 
 start:
-	@ npx build-component --start --dev
+	@ npx build-module --start --dev
 
 start-prod:
-	@ npx build-component --start
+	@ npx build-module --start
 
 test:
 	@ echo "Not Supported"
