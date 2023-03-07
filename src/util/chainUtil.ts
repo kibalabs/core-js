@@ -1,20 +1,17 @@
-
-import { BigNumber } from '@ethersproject/bignumber';
-
 import { longFormatNumber, shortFormatNumber } from './numberUtil';
 
-export const ETHER = BigNumber.from('1000000000000000000');
+export const ETHER = BigInt('1000000000000000000');
 
-export const etherToNumber = (value: BigNumber): number => {
-  return value.mul(1000).div(ETHER).toNumber() / 1000.0;
+export const etherToNumber = (value: bigint): number => {
+  return Number((value.valueOf() * 1000000n) / ETHER) / 1000000.0;
 };
 
-export const shortFormatEther = (value: BigNumber): string => {
+export const shortFormatEther = (value: bigint): string => {
   const numberString = shortFormatNumber(etherToNumber(value));
   return `Ξ${numberString}`;
 };
 
-export const longFormatEther = (value: BigNumber): string => {
+export const longFormatEther = (value: bigint): string => {
   const numberString = longFormatNumber(etherToNumber(value));
   return `Ξ${numberString}`;
 };
