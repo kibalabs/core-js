@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 - [MINOR] Added `updateQueryString` to `urlUtil`
 
 ### Changed
+- [MAJOR] Updated `chainUtil` to use BigInt instead of BigNumber
 
 ### Removed
 
