@@ -13,6 +13,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ### Removed
 
+## [0.6.1] - 2023-04-11
+
+- [MAJOR] Fix for lack of exported files in package
+
 ## [0.6.0] - 2023-04-11
 
 ### Added
