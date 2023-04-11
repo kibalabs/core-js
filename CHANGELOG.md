@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Removed
+
+## [0.6.0] - 2023-04-11
+
+### Added
 - [MINOR] Added `updateQueryString` to `urlUtil`
 - [MINOR] Added `arrayWithRange` to `listUtil`
 - [MINOR] Added `getChunks` to `listUtil`
@@ -17,8 +25,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 ### Changed
 - [MAJOR] Updated `chainUtil` to use BigInt instead of BigNumber
 - [MINOR] Updated `longFormatNumber` to have new parameters `fractionDigits`, `shouldRemoveTrailingDecimals` and `shouldAddCommas`
-
-### Removed
 
 ## [0.5.10] - 2022-10-11
 
