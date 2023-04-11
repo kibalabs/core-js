@@ -64,3 +64,12 @@ export const truncateEnd = (text: string, maxLength: number): string => {
   }
   return text;
 };
+
+
+export const base64DecodeUnicode = (input: string): string => {
+  // NOTE(krishan711): Convert Base64 encoded bytes to percent-encoding, and then get the original string.
+  const percentEncodedInput = atob(input).split('').map((c: string): string => {
+    return `%${(`00${c.charCodeAt(0).toString(16)}`).slice(-2)}`;
+  }).join('');
+  return decodeURIComponent(percentEncodedInput);
+};

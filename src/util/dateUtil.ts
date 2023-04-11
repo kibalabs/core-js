@@ -127,6 +127,18 @@ export const dateToRelativeShortString = (date: Date): string => {
   return `${interval}${intervalType} ago`;
 };
 
+export const startOfDay = (date: Date): Date => {
+  const newDate = new Date(date.getTime());
+  newDate.setHours(0, 0, 0, 0);
+  return newDate;
+};
+
+export const endOfDay = (date: Date): Date => {
+  const newDate = new Date(date.getTime());
+  newDate.setHours(23, 59, 59, 999);
+  return newDate;
+};
+
 // export const guessTimezone = (): string => {
 //   if (Intl?.DateTimeFormat()?.resolvedOptions()?.timeZone) {
 //     return Intl.DateTimeFormat().resolvedOptions().timeZone;
