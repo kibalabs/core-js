@@ -27,7 +27,20 @@ export const shortFormatNumber = (value: number): string => {
   return value.toFixed(2);
 };
 
-export const longFormatNumber = (value: number): string => {
-  const roundedValue = value.toFixed(2);
+export const longFormatNumber = (value: number, fractionDigits = 2, shouldRemoveTrailingDecimals = false, shouldAddCommas = false): string => {
+  let roundedValue = value.toFixed(fractionDigits);
+  if (shouldRemoveTrailingDecimals) {
+    while (roundedValue.charAt(roundedValue.length - 1) === ',') {
+      roundedValue = roundedValue.slice(0, -1);
+    }
+    if (roundedValue.endsWith('.0')) {
+      roundedValue = roundedValue.replace('.0', '');
+    }
+  }
+  if (shouldAddCommas) {
+    const parts = roundedValue.split('.');
+    const part0 = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    roundedValue = parts.length === 1 ? part0 : `${part0}.${parts[1]}`;
+  }
   return `${roundedValue.toLocaleString()}`;
 };
