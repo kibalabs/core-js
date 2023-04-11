@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 ### Added
 - [MINOR] Added `updateQueryString` to `urlUtil`
 - [MINOR] Added `arrayWithRange` to `listUtil`
+- [MINOR] Added `getChunks` to `listUtil`
 - [MINOR] Added `base64DecodeUnicode` to `stringUtil`
 - [MINOR] Added `startOfDay` and `endOfDay` to `dateUtil`
 
