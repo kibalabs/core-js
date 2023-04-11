@@ -18,10 +18,10 @@
   "dependencies": {
     "date-fns": "^2.29.3",
     "date-fns-tz": "^2.0.0",
-    "deepmerge": "^4.3.0",
+    "deepmerge": "^4.3.1",
     "fast-deep-equal": "^3.1.3"
   },
   "devDependencies": {
-    "@kibalabs/build": "0.12.1-next.5"
+    "@kibalabs/build": "0.13.0"
   }
 }
