@@ -9,11 +9,11 @@
   },
   "homepage": "https://github.com/kibalabs/core-js",
   "bugs": "https://github.com/kibalabs/core-js/issues",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "sideEffects": false,
   "files": [
-    "./dist/**"
+    "dist/*"
   ],
   "dependencies": {
     "date-fns": "^2.29.3",
