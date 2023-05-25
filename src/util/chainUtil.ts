@@ -11,7 +11,7 @@ export const shortFormatEther = (value: bigint): string => {
   return `Ξ${numberString}`;
 };
 
-export const longFormatEther = (value: bigint, fractionDigits = 2): string => {
-  const numberString = longFormatNumber(etherToNumber(value), fractionDigits);
+export const longFormatEther = (value: bigint, fractionDigits = 2, shouldRemoveTrailingDecimals = false, shouldAddCommas = false): string => {
+  const numberString = longFormatNumber(etherToNumber(value), fractionDigits, shouldRemoveTrailingDecimals, shouldAddCommas);
   return `Ξ${numberString}`;
 };
