@@ -1,8 +1,10 @@
 export * from './asyncUtil';
 export * from './browserUtil';
+export * from './chainUtil';
 export * from './classNameUtil';
 export * from './dateUtil';
 export * from './fileUtil';
+export * from './listUtil';
 export * from './numberUtil';
 export * from './objectUtil';
 export * from './promiseUtil';
@@ -10,4 +12,3 @@ export * from './serializationUtil';
 export * from './stringUtil';
 export * from './typeUtil';
 export * from './urlUtils';
-export * from './chainUtil';
