@@ -1,8 +1,8 @@
-import addMinutes from 'date-fns/addMinutes';
-import isValidDate from 'date-fns/isValid';
-import parseDate from 'date-fns/parse';
-import parseIsoDate from 'date-fns/parseISO';
-import formatDate from 'date-fns-tz/format';
+import { addMinutes } from 'date-fns/addMinutes';
+import { isValid } from 'date-fns/isValid';
+import { parse } from 'date-fns/parse';
+import { parseISO } from 'date-fns/parseISO';
+import { format } from 'date-fns-tz/format';
 // add to package.json if needed: "jstimezonedetect": "^1.0.7"
 // import jstz from 'jstimezonedetect';
 
@@ -13,26 +13,26 @@ export const JSON_DATE_FORMAT = 'yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX';
 export const dateFromString = (dateString: string, format?: string): Date => {
   let parsedDate: Date | undefined;
   if (!format) {
-    parsedDate = parseIsoDate(dateString);
+    parsedDate = parseISO(dateString);
   } else {
     try {
-      parsedDate = parseDate(dateString, format, new Date());
+      parsedDate = parse(dateString, format, new Date());
     } catch {
       // no-op
     }
   }
-  if (!parsedDate || !isValidDate(parsedDate)) {
+  if (!parsedDate || !isValid(parsedDate)) {
     throw new KibaException(`Invalid date string ${dateString} passed to dateFromString`);
   }
   return parsedDate;
 };
 
-export const dateToString = (date: Date, format: string = JSON_DATE_FORMAT, convertToUtc = false): string => {
+export const dateToString = (date: Date, formatString: string = JSON_DATE_FORMAT, convertToUtc = false): string => {
   let finalDate = date;
   if (convertToUtc) {
     finalDate = addMinutes(finalDate, finalDate.getTimezoneOffset());
   }
-  const formattedDate = formatDate(finalDate, format, convertToUtc ? { timeZone: 'UTC' } : {});
+  const formattedDate = format(finalDate, formatString, convertToUtc ? { timeZone: 'UTC' } : {});
   return formattedDate;
 };
 
@@ -48,6 +48,12 @@ export const isYesterday = (date: Date): boolean => {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   return isSameDay(date, yesterday);
+};
+
+export const addHours = (date: Date, hours: number): Date => {
+  const newDate = new Date(date.getTime());
+  newDate.setTime(newDate.getTime() + (hours * 60 * 60 * 1000));
+  return newDate;
 };
 
 export const addDays = (date: Date, days: number): Date => {
