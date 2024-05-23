@@ -2,7 +2,7 @@ import { addMinutes } from 'date-fns/addMinutes';
 import { isValid } from 'date-fns/isValid';
 import { parse } from 'date-fns/parse';
 import { parseISO } from 'date-fns/parseISO';
-import { format } from 'date-fns-tz/format';
+import { format } from 'date-fns-tz';
 // add to package.json if needed: "jstimezonedetect": "^1.0.7"
 // import jstz from 'jstimezonedetect';
 
@@ -10,13 +10,13 @@ import { KibaException } from '../model';
 
 export const JSON_DATE_FORMAT = 'yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX';
 
-export const dateFromString = (dateString: string, format?: string): Date => {
+export const dateFromString = (dateString: string, formatString?: string): Date => {
   let parsedDate: Date | undefined;
-  if (!format) {
+  if (!formatString) {
     parsedDate = parseISO(dateString);
   } else {
     try {
-      parsedDate = parse(dateString, format, new Date());
+      parsedDate = parse(dateString, formatString, new Date());
     } catch {
       // no-op
     }
