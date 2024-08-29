@@ -1,6 +1,6 @@
 {
   "name": "@kibalabs/core",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Utilities for use in front-end projects at Kiba Labs",
   "license": "MIT",
   "repository": {
@@ -22,6 +22,6 @@
     "fast-deep-equal": "^3.1.3"
   },
   "devDependencies": {
-    "@kibalabs/build": "0.13.2-next.8"
+    "@kibalabs/build": "0.13.2"
   }
 }

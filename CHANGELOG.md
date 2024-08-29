@@ -10,12 +10,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 ### Added
 
 ### Changed
-- [MINOR] Added `shouldRemoveTrailingDecimals` and `shouldAddCommas` to `longFormatEther`
 
 ### Removed
 
+## [0.6.2] - 2024-08-29
+
+### Changed
+- [MINOR] Added `shouldRemoveTrailingDecimals` and `shouldAddCommas` to `longFormatEther`
+
 ## [0.6.1] - 2023-04-11
 
+### Changed
 - [MAJOR] Fix for lack of exported files in package
 
 ## [0.6.0] - 2023-04-11
