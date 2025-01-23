@@ -27,6 +27,7 @@ export const dateFromString = (dateString: string, formatString?: string): Date 
   return parsedDate;
 };
 
+// NOTE(krishan711): i really don\t know what convertToUtc was used for previously but its not used now so probably should remove it
 export const dateToString = (date: Date, formatString: string = JSON_DATE_FORMAT, convertToUtc = false): string => {
   let finalDate = date;
   if (convertToUtc) {

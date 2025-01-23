@@ -1,7 +1,7 @@
 import * as deepmerge from 'deepmerge';
 import deepEqual from 'fast-deep-equal';
 
-import { RecursivePartial } from '.';
+import { RecursivePartial } from './typeUtil';
 
 export function merge<T>(base: T, ...partials: (RecursivePartial<T> | undefined)[]): T {
   // @ts-ignore
