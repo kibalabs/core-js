@@ -1,4 +1,4 @@
-import * as deepmerge from 'deepmerge';
+import deepmerge from 'deepmerge';
 import deepEqual from 'fast-deep-equal';
 
 import { RecursivePartial } from './typeUtil';
