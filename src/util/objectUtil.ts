@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-named-default
 import { default as deepmerge } from 'deepmerge';
 import deepEqual from 'fast-deep-equal';
 
