@@ -1,4 +1,5 @@
-import * as deepmerge from 'deepmerge';
+// eslint-disable-next-line import/no-named-default
+import { default as deepmerge } from 'deepmerge';
 import deepEqual from 'fast-deep-equal';
 
 import { RecursivePartial } from './typeUtil';
