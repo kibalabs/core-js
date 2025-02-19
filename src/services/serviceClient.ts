@@ -27,9 +27,9 @@ export class ServiceClient {
     this.baseUrl = baseUrl;
   }
 
-  protected makeRequest = async <ResponseType extends ResponseData>(method: RestMethod, path: string, request?: RequestData | undefined, responseClass?: Constructor<ResponseType> | undefined): Promise<ResponseType> => {
+  protected makeRequest = async <ResponseType extends ResponseData>(method: RestMethod, path: string, request?: RequestData | undefined, responseClass?: Constructor<ResponseType> | undefined, additionalHeaders?: Record<string, string>): Promise<ResponseType> => {
     const url = `${this.baseUrl}/${path}`;
-    const response = await this.requester.makeRequest(method, url, request?.toObject());
+    const response = await this.requester.makeRequest(method, url, request?.toObject(), additionalHeaders);
     // @ts-ignore
     return responseClass ? responseClass.fromObject(JSON.parse(response.content)) : null;
   };
