@@ -1,22 +1,24 @@
 import { Requester, RestMethod } from '../requester';
 
+export type RawObject = Record<string, unknown>;
+
 // TODO(krishan711): should this be an interface?
 export class RequestData {
   // eslint-disable-next-line class-methods-use-this
-  public toObject = (): Record<string, unknown> => {
+  public toObject = (): RawObject => {
     return {};
   };
 }
 
 // TODO(krishan711): should this be an interface?
 export class ResponseData {
-  // public static fromObject = <T extends ResponseData>(obj: Record<string, unknown>): T => {
+  // public static fromObject = <T extends ResponseData>(obj: RawObject): T => {
   //   throw new Error();
   // }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Constructor<T = Record<string, unknown>> = new (...args: any[]) => T;
+type Constructor<T = RawObject> = new (...args: any[]) => T;
 
 export class ServiceClient {
   protected requester: Requester;
