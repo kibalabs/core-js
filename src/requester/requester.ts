@@ -92,9 +92,11 @@ export class Requester {
         // no-op
       }
       if (errorContent && 'message' in errorContent) {
-        throw new KibaException(errorContent.message, response.status);
+        const fields = errorContent.fields || {};
+        const exceptionType = errorContent.exceptionType || undefined;
+        throw new KibaException(errorContent.message, response.status, exceptionType, fields);
       }
-      throw new KibaException(response.content, response.status);
+      throw new KibaException(response.content, response.status, undefined, {});
     }
     return response;
   };

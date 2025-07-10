@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 - [MINOR] Use module-rolldown from build-js to build with rolldown
 - [MAJOR] Converted package into an es-module
 - [MINOR] Added `additionalHeaders` to `ServiceClient`.`makeRequest`
+- [MINOR] Added `exceptionType` and `fields` to `KibaException`
 
 ### Changed
 
