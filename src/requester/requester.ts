@@ -144,6 +144,7 @@ export class Requester {
         url.search = createSearchParams(requestData).toString();
       }
     } else {
+      // TODO(krishan711): find a better place for this
       const currentContentHeader = headers.get('Content-Type');
       if (request.data) {
         fetchConfig.body = JSON.stringify(request.data);
@@ -153,6 +154,10 @@ export class Requester {
         headers.set('content-type', 'application/json');
       } else if (request.formData) {
         fetchConfig.body = request.formData;
+        // NOTE(krishan711): I don't know whether this should be set or not.
+        // For S3 uploads it cannot be set as the file type is set already
+        // For azure uploads the content-type should be set by the caller to the file type
+        // headers.set('content-type', 'multipart/form-data');
       }
     }
     return { url, fetchConfig };
