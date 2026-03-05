@@ -98,18 +98,7 @@ export class Requester {
     let response = await this.makeFetchRequest(modifiedRequest);
     response = this.modifyResponse(response);
     if (response.status >= 400 && response.status < 600) {
-      let errorContent = null;
-      try {
-        errorContent = JSON.parse(response.content);
-      } catch {
-        // no-op
-      }
-      if (errorContent && 'message' in errorContent) {
-        const fields = errorContent.fields || {};
-        const exceptionType = errorContent.exceptionType || undefined;
-        throw new KibaException(errorContent.message, response.status, exceptionType, fields);
-      }
-      throw new KibaException(response.content, response.status, undefined, {});
+      Requester.throwKibaExceptionFromErrorContent(response.content, response.status);
     }
     return response;
   };
@@ -189,53 +178,6 @@ export class Requester {
     throw new KibaException(errorContent, statusCode, undefined, {});
   };
 
-  private static processStreamLine = <StreamItemType>(
-    line: string,
-    parseItem: (obj: Record<string, unknown>) => StreamItemType,
-    onItem: (item: StreamItemType) => void,
-  ): void => {
-    const trimmedLine = line.trim();
-    if (!trimmedLine) {
-      return;
-    }
-    let itemObject: Record<string, unknown>;
-    try {
-      itemObject = JSON.parse(trimmedLine) as Record<string, unknown>;
-    } catch (error) {
-      throw new KibaException(`Failed to parse streaming response line: ${trimmedLine}. Error: ${String(error)}`);
-    }
-    onItem(parseItem(itemObject));
-  };
-
-  private static readNdjsonStream = async <StreamItemType>(
-    response: Response,
-    parseItem: (obj: Record<string, unknown>) => StreamItemType,
-    onItem: (item: StreamItemType) => void,
-  ): Promise<void> => {
-    const reader = response.body?.getReader();
-    if (!reader) {
-      throw new KibaException('The request was made but no response body was received.');
-    }
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    const readAllChunks = async (): Promise<void> => {
-      const { done, value } = await reader.read();
-      if (done) {
-        return;
-      }
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
-      lines.forEach((line: string): void => Requester.processStreamLine(line, parseItem, onItem));
-      await readAllChunks();
-    };
-
-    await readAllChunks();
-    buffer += decoder.decode();
-    Requester.processStreamLine(buffer, parseItem, onItem);
-  };
-
   private makeFetchRequest = async (request: KibaRequest): Promise<KibaResponse> => {
     const { url, fetchConfig } = this.createFetchRequestConfig(request);
     const fetchOperation = fetch(url.toString(), fetchConfig)
@@ -272,7 +214,41 @@ export class Requester {
           const errorContent = await response.text();
           Requester.throwKibaExceptionFromErrorContent(errorContent, response.status);
         }
-        await Requester.readNdjsonStream(response, parseItem, onItem);
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new KibaException('The request was made but no response body was received.');
+        }
+        const processLine = (line: string): void => {
+          const trimmedLine = line.trim();
+          if (!trimmedLine) {
+            return;
+          }
+          let itemObject: Record<string, unknown>;
+          try {
+            itemObject = JSON.parse(trimmedLine) as Record<string, unknown>;
+          } catch (error) {
+            throw new KibaException(`Failed to parse streaming response line: ${trimmedLine}. Error: ${String(error)}`);
+          }
+          onItem(parseItem(itemObject));
+        };
+
+        const decoder = new TextDecoder();
+        let buffer = '';
+        const readAllChunks = async (): Promise<void> => {
+          const { done, value } = await reader.read();
+          if (done) {
+            return;
+          }
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+          lines.forEach(processLine);
+          await readAllChunks();
+        };
+        await readAllChunks();
+        buffer += decoder.decode();
+        processLine(buffer);
+
         return new KibaResponse(response.status, responseHeaders, new Date(), '');
       });
     const response = await (request.timeoutSeconds ? timeoutPromise(request.timeoutSeconds, fetchOperation) : fetchOperation);
