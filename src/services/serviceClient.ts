@@ -51,13 +51,6 @@ export class ServiceClient {
     additionalHeaders?: Record<string, string>,
   ): Promise<void> => {
     const url = `${this.baseUrl}/${path}`;
-    await this.requester.makeStreamingRequest(
-      method,
-      url,
-      request?.toObject(),
-      streamItemClass.fromObject,
-      onStreamItem,
-      additionalHeaders,
-    );
+    await this.requester.makeStreamingRequest(method, url, request?.toObject(), streamItemClass.fromObject, onStreamItem, additionalHeaders);
   };
 }
