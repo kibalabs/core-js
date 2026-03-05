@@ -17,8 +17,9 @@ export class ResponseData {
   // }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Constructor<T = RawObject> = new (...args: any[]) => T;
+export type ResponseDataClass<T extends ResponseData> = {
+  fromObject: (obj: RawObject) => T;
+};
 
 export class ServiceClient {
   protected requester: Requester;
@@ -29,10 +30,28 @@ export class ServiceClient {
     this.baseUrl = baseUrl;
   }
 
-  protected makeRequest = async <ResponseType extends ResponseData>(method: RestMethod, path: string, request?: RequestData | undefined, responseClass?: Constructor<ResponseType> | undefined, additionalHeaders?: Record<string, string>): Promise<ResponseType> => {
+  protected makeRequest = async <ResponseType extends ResponseData>(method: RestMethod, path: string, request?: RequestData | undefined, responseClass?: ResponseDataClass<ResponseType> | undefined, additionalHeaders?: Record<string, string>): Promise<ResponseType> => {
     const url = `${this.baseUrl}/${path}`;
     const response = await this.requester.makeRequest(method, url, request?.toObject(), additionalHeaders);
-    // @ts-ignore
-    return responseClass ? responseClass.fromObject(JSON.parse(response.content)) : null;
+    return responseClass ? responseClass.fromObject(JSON.parse(response.content) as RawObject) : null as ResponseType;
+  };
+
+  protected makeStreamingRequest = async <StreamItemType extends ResponseData>(
+    method: RestMethod,
+    path: string,
+    request: RequestData | undefined,
+    streamItemClass: ResponseDataClass<StreamItemType>,
+    onStreamItem: (streamItem: StreamItemType) => void,
+    additionalHeaders?: Record<string, string>,
+  ): Promise<void> => {
+    const url = `${this.baseUrl}/${path}`;
+    await this.requester.makeStreamingRequest(
+      method,
+      url,
+      request?.toObject(),
+      streamItemClass.fromObject,
+      onStreamItem,
+      additionalHeaders,
+    );
   };
 }
