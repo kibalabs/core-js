@@ -30,10 +30,16 @@ export class ServiceClient {
     this.baseUrl = baseUrl;
   }
 
-  protected makeRequest = async <ResponseType extends ResponseData>(method: RestMethod, path: string, request?: RequestData | undefined, responseClass?: ResponseDataClass<ResponseType> | undefined, additionalHeaders?: Record<string, string>): Promise<ResponseType> => {
+  protected makeRequest = async <ResponseType extends ResponseData>(
+    method: RestMethod,
+    path: string,
+    request?: RequestData | undefined,
+    responseClass?: ResponseDataClass<ResponseType> | undefined,
+    additionalHeaders?: Record<string, string>,
+  ): Promise<ResponseType> => {
     const url = `${this.baseUrl}/${path}`;
     const response = await this.requester.makeRequest(method, url, request?.toObject(), additionalHeaders);
-    return responseClass ? responseClass.fromObject(JSON.parse(response.content) as RawObject) : null as ResponseType;
+    return responseClass ? responseClass.fromObject(JSON.parse(response.content) as RawObject) : null as unknown as ResponseType;
   };
 
   protected makeStreamingRequest = async <StreamItemType extends ResponseData>(

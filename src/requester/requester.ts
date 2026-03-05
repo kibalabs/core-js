@@ -124,12 +124,11 @@ export class Requester {
     this.modifyResponse(response);
   };
 
-  private makeFetchRequest = async (request: KibaRequest): Promise<KibaResponse> => {
+  private createFetchRequestConfig = (request: KibaRequest): { url: URL; fetchConfig: { method: string; headers: Headers; credentials: 'include' | 'same-origin'; body?: string | FormData } } => {
     const url = new URL(request.url);
     const headers = new Headers({ ...this.headers, ...(request.headers || {}) });
     // NOTE(krishan711): RequestInit comes from the DOM which isn't used by default in typescript typings
-    // eslint-disable-next-line no-undef
-    const fetchConfig: RequestInit = {
+    const fetchConfig: { method: string; headers: Headers; credentials: 'include' | 'same-origin'; body?: string | FormData } = {
       method: request.method.toUpperCase(),
       headers,
       credentials: this.shouldIncludeCrossSiteCredentials ? 'include' : 'same-origin',
@@ -145,7 +144,6 @@ export class Requester {
         url.search = createSearchParams(requestData).toString();
       }
     } else {
-      // TODO(krishan711): find a better place for this
       const currentContentHeader = headers.get('Content-Type');
       if (request.data) {
         fetchConfig.body = JSON.stringify(request.data);
@@ -155,12 +153,86 @@ export class Requester {
         headers.set('content-type', 'application/json');
       } else if (request.formData) {
         fetchConfig.body = request.formData;
-        // NOTE(krishan711): I don't know whether this should be set or not.
-        // For S3 uploads it cannot be set as the file type is set already
-        // For azure uploads the content-type should be set by the caller to the file type
-        // headers.set('content-type', 'multipart/form-data');
       }
     }
+    return { url, fetchConfig };
+  };
+
+  private static getResponseHeaders = (response: Response): Record<string, string> => {
+    const responseHeaders: Record<string, string> = {};
+    response.headers.forEach((value: string, key: string): void => {
+      if (responseHeaders[key]) {
+        console.warn(`key ${key} will be overwritten. TODO(krish): Implement joining keys!`);
+      }
+      responseHeaders[key] = value;
+    });
+    return responseHeaders;
+  };
+
+  private static throwKibaExceptionFromErrorContent = (errorContent: string, statusCode: number): never => {
+    let parsedErrorContent: Record<string, unknown> | null = null;
+    try {
+      parsedErrorContent = JSON.parse(errorContent) as Record<string, unknown>;
+    } catch {
+      // no-op
+    }
+    if (parsedErrorContent && 'message' in parsedErrorContent) {
+      const fields = parsedErrorContent.fields as Record<string, string> || {};
+      const exceptionType = typeof parsedErrorContent.exceptionType === 'string' ? parsedErrorContent.exceptionType : undefined;
+      throw new KibaException(String(parsedErrorContent.message), statusCode, exceptionType, fields);
+    }
+    throw new KibaException(errorContent, statusCode, undefined, {});
+  };
+
+  private static processStreamLine = <StreamItemType>(
+    line: string,
+    parseItem: (obj: Record<string, unknown>) => StreamItemType,
+    onItem: (item: StreamItemType) => void,
+  ): void => {
+    const trimmedLine = line.trim();
+    if (!trimmedLine) {
+      return;
+    }
+    let itemObject: Record<string, unknown>;
+    try {
+      itemObject = JSON.parse(trimmedLine) as Record<string, unknown>;
+    } catch (error) {
+      throw new KibaException(`Failed to parse streaming response line: ${trimmedLine}. Error: ${String(error)}`);
+    }
+    onItem(parseItem(itemObject));
+  };
+
+  private static readNdjsonStream = async <StreamItemType>(
+    response: Response,
+    parseItem: (obj: Record<string, unknown>) => StreamItemType,
+    onItem: (item: StreamItemType) => void,
+  ): Promise<void> => {
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new KibaException('The request was made but no response body was received.');
+    }
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    const readAllChunks = async (): Promise<void> => {
+      const { done, value } = await reader.read();
+      if (done) {
+        return;
+      }
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      lines.forEach((line: string): void => Requester.processStreamLine(line, parseItem, onItem));
+      await readAllChunks();
+    };
+
+    await readAllChunks();
+    buffer += decoder.decode();
+    Requester.processStreamLine(buffer, parseItem, onItem);
+  };
+
+  private makeFetchRequest = async (request: KibaRequest): Promise<KibaResponse> => {
+    const { url, fetchConfig } = this.createFetchRequestConfig(request);
     const fetchOperation = fetch(url.toString(), fetchConfig)
       .catch((error): void => {
         throw new KibaException(`The request was made but no response was received: [${error.code}] "${error.message}"`);
@@ -170,14 +242,7 @@ export class Requester {
           throw new KibaException('The request was made but no response was received.');
         }
         const content = await response.text();
-        const responseHeaders: Record<string, string> = {};
-        response.headers.forEach((value: string, key: string): void => {
-          if (responseHeaders[key]) {
-            console.warn(`key ${key} will be overwritten. TODO(krish): Implement joining keys!`);
-          }
-          responseHeaders[key] = value;
-        });
-        return new KibaResponse(response.status, responseHeaders, new Date(), content);
+        return new KibaResponse(response.status, Requester.getResponseHeaders(response), new Date(), content);
       });
     const response = await (request.timeoutSeconds ? timeoutPromise(request.timeoutSeconds, fetchOperation) : fetchOperation);
     return response;
@@ -188,37 +253,7 @@ export class Requester {
     parseItem: (obj: Record<string, unknown>) => StreamItemType,
     onItem: (item: StreamItemType) => void,
   ): Promise<KibaResponse> => {
-    const url = new URL(request.url);
-    const headers = new Headers({ ...this.headers, ...(request.headers || {}) });
-    // NOTE(krishan711): RequestInit comes from the DOM which isn't used by default in typescript typings
-    // eslint-disable-next-line no-undef
-    const fetchConfig: RequestInit = {
-      method: request.method.toUpperCase(),
-      headers,
-      credentials: this.shouldIncludeCrossSiteCredentials ? 'include' : 'same-origin',
-    };
-    if (request.method === RestMethod.GET || request.method === RestMethod.DELETE) {
-      if (request.data) {
-        const requestData = ({ ...request.data }) as Record<string, string>;
-        Object.keys(requestData).forEach((key: string): void => {
-          if (requestData[key] === undefined) {
-            delete requestData[key];
-          }
-        });
-        url.search = createSearchParams(requestData).toString();
-      }
-    } else {
-      const currentContentHeader = headers.get('Content-Type');
-      if (request.data) {
-        fetchConfig.body = JSON.stringify(request.data);
-        if (currentContentHeader && currentContentHeader !== 'application/json') {
-          console.warn(`Overwriting content-type header for request from ${currentContentHeader} to application/json`);
-        }
-        headers.set('content-type', 'application/json');
-      } else if (request.formData) {
-        fetchConfig.body = request.formData;
-      }
-    }
+    const { url, fetchConfig } = this.createFetchRequestConfig(request);
     const fetchOperation = fetch(url.toString(), fetchConfig)
       .catch((error): void => {
         throw new KibaException(`The request was made but no response was received: [${error.code}] "${error.message}"`);
@@ -227,68 +262,12 @@ export class Requester {
         if (!response) {
           throw new KibaException('The request was made but no response was received.');
         }
-        const responseHeaders: Record<string, string> = {};
-        response.headers.forEach((value: string, key: string): void => {
-          if (responseHeaders[key]) {
-            console.warn(`key ${key} will be overwritten. TODO(krish): Implement joining keys!`);
-          }
-          responseHeaders[key] = value;
-        });
+        const responseHeaders = Requester.getResponseHeaders(response);
         if (response.status >= 400 && response.status < 600) {
           const errorContent = await response.text();
-          let parsedErrorContent: Record<string, unknown> | null = null;
-          try {
-            parsedErrorContent = JSON.parse(errorContent) as Record<string, unknown>;
-          } catch {
-            // no-op
-          }
-          if (parsedErrorContent && 'message' in parsedErrorContent) {
-            const fields = parsedErrorContent.fields as Record<string, unknown> || {};
-            const exceptionType = typeof parsedErrorContent.exceptionType === 'string' ? parsedErrorContent.exceptionType : undefined;
-            throw new KibaException(String(parsedErrorContent.message), response.status, exceptionType, fields);
-          }
-          throw new KibaException(errorContent, response.status, undefined, {});
+          Requester.throwKibaExceptionFromErrorContent(errorContent, response.status);
         }
-        const reader = response.body?.getReader();
-        if (!reader) {
-          throw new KibaException('The request was made but no response body was received.');
-        }
-        const decoder = new TextDecoder();
-        let buffer = '';
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) {
-            break;
-          }
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-          for (const line of lines) {
-            const trimmedLine = line.trim();
-            if (!trimmedLine) {
-              continue;
-            }
-            let itemObject: Record<string, unknown>;
-            try {
-              itemObject = JSON.parse(trimmedLine) as Record<string, unknown>;
-            } catch (error) {
-              throw new KibaException(`Failed to parse streaming response line: ${trimmedLine}. Error: ${String(error)}`);
-            }
-            onItem(parseItem(itemObject));
-          }
-        }
-        buffer += decoder.decode();
-        const finalLine = buffer.trim();
-        if (finalLine) {
-          let itemObject: Record<string, unknown>;
-          try {
-            itemObject = JSON.parse(finalLine) as Record<string, unknown>;
-          } catch (error) {
-            throw new KibaException(`Failed to parse streaming response line: ${finalLine}. Error: ${String(error)}`);
-          }
-          onItem(parseItem(itemObject));
-        }
+        await Requester.readNdjsonStream(response, parseItem, onItem);
         return new KibaResponse(response.status, responseHeaders, new Date(), '');
       });
     const response = await (request.timeoutSeconds ? timeoutPromise(request.timeoutSeconds, fetchOperation) : fetchOperation);
