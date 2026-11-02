@@ -13,4 +13,6 @@ It has one entry per environment so the main entry stays free of React, Web3 and
 
 The libraries needed by `react` and `web3` are optional peer dependencies, so install the ones for the entries you use in your project.
 
+`@kibalabs/core/web3` only loads reown and the base account sdk (most of an app's web3 code) when they're needed: when restoring a session that uses them, when they're used to log in, or in the background a couple of seconds after the page has loaded if no account was restored. So with a bundler that splits dynamic imports (e.g. vite), they aren't part of the code an app loads up front.
+
 For use, see other projects. We will update this README over time :)
