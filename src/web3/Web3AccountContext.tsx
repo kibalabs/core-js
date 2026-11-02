@@ -120,13 +120,38 @@ const loadBaseAccount = (): Promise<CreateBaseAccountSdk> => {
   return createBaseAccountSdkPromise;
 };
 
-const runWhenIdle = (callback: () => void): (() => void) => {
-  if (typeof window.requestIdleCallback === 'function') {
-    const idleCallbackId = window.requestIdleCallback(callback, { timeout: 3000 });
-    return (): void => window.cancelIdleCallback(idleCallbackId);
+// NOTE(krishan711): runs the callback a little after the page has loaded (when the browser is idle) so it doesn't slow down loading the page
+const runInBackground = (callback: () => void): (() => void) => {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  let idleCallbackId: number | null = null;
+  const onIdle = (): void => {
+    idleCallbackId = null;
+    callback();
+  };
+  const onLoaded = (): void => {
+    timeoutId = setTimeout((): void => {
+      timeoutId = null;
+      if (typeof window.requestIdleCallback === 'function') {
+        idleCallbackId = window.requestIdleCallback(onIdle, { timeout: 2000 });
+      } else {
+        callback();
+      }
+    }, 2000);
+  };
+  if (document.readyState === 'complete') {
+    onLoaded();
+  } else {
+    window.addEventListener('load', onLoaded, { once: true });
   }
-  const timeoutId = setTimeout(callback, 1000);
-  return (): void => clearTimeout(timeoutId);
+  return (): void => {
+    window.removeEventListener('load', onLoaded);
+    if (timeoutId != null) {
+      clearTimeout(timeoutId);
+    }
+    if (idleCallbackId != null) {
+      window.cancelIdleCallback(idleCallbackId);
+    }
+  };
 };
 
 export const web3Initialize = (config: IWeb3Config): void => {
@@ -225,7 +250,7 @@ export function Web3AccountControlProvider(props: IWeb3AccountControlProviderPro
     if (web3Account !== null) {
       return undefined;
     }
-    return runWhenIdle((): void => {
+    return runInBackground((): void => {
       if (isReownInitializedGlobally) {
         loadReown().catch((error: unknown): void => {
           console.error('Failed to load reown:', error);
