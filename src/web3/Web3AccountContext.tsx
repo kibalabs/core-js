@@ -726,6 +726,8 @@ export const useWeb3OnBaseLoginClicked = (): ((chainId: number, statement: strin
 export const useWeb3OnReownLoginClicked = (): (() => Promise<void>) => {
   const openModal = React.useCallback(async (): Promise<void> => {
     await loadReown();
+    // NOTE(krishan711): wait for reown to finish setting up its connectors (e.g. WalletConnect) when it's only just been loaded, otherwise the modal opens without them
+    await reownAppKit?.ready();
     await reownAppKit?.open();
   }, []);
   return openModal;
