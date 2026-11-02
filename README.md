@@ -1,18 +1,38 @@
-# Core-JS
+# @kibalabs/core
 
-This is Kiba Lab's utility belt for use when creating projects with JavaScript and Typescript.
+Kiba Labs' utilities for TypeScript projects, with optional React, Web3 and Node entries.
 
-It has one entry per environment so the main entry stays free of React, Web3 and Node code:
+## Install
 
-| Import | Contents | Needs installed |
-| --- | --- | --- |
-| `@kibalabs/core` | plain TypeScript utilities (requests, storage, dates, ...) | - |
-| `@kibalabs/core/react` | React hooks and utilities (previously `@kibalabs/core-react`) | `react`, `react-router` |
-| `@kibalabs/core/web3` | Web3 account context and hooks (previously `@kibalabs/web3-react`) | `react`, `react-dom`, `react-router`, `ethers`, `@reown/appkit`, `@reown/appkit-adapter-ethers`, `@base-org/account`, `@safe-global/safe-apps-sdk`, `@safe-global/safe-apps-provider` |
-| `@kibalabs/core/node` | Node.js file helpers (`copyFileSync`, `copyDirectorySync`) | - |
+```bash
+npm install @kibalabs/core
+```
 
-The libraries needed by `react` and `web3` are optional peer dependencies, so install the ones for the entries you use in your project.
+## Entries
 
-`@kibalabs/core/web3` only loads reown and the base account sdk (most of an app's web3 code) when they're needed: when restoring a session that uses them, when they're used to log in, or in the background a couple of seconds after the page has loaded if no account was restored. So with a bundler that splits dynamic imports (e.g. vite), they aren't part of the code an app loads up front.
+| Import | Contents |
+| --- | --- |
+| `@kibalabs/core` | Requests, service clients, storage, dates and other plain TypeScript utilities |
+| `@kibalabs/core/react` | React hooks and utilities (was `@kibalabs/core-react`) |
+| `@kibalabs/core/web3` | Web3 account context, contracts and transactions (was `@kibalabs/web3-react`) |
+| `@kibalabs/core/node` | Node.js file helpers |
 
-For use, see other projects. We will update this README over time :)
+The main entry has no React, Web3 or Node code. The other entries' libraries are optional peer dependencies, so install the ones for the entries you use:
+
+```bash
+# @kibalabs/core/react
+npm install react react-router
+# @kibalabs/core/web3
+npm install react react-dom react-router ethers @reown/appkit @reown/appkit-adapter-ethers @base-org/account @safe-global/safe-apps-sdk @safe-global/safe-apps-provider
+```
+
+`@kibalabs/core/web3` loads reown and the Base account SDK only when they're needed (restoring a session that uses them, logging in with them, or in the background after the page has loaded), so bundlers that split dynamic imports keep them out of an app's initial load.
+
+## Development
+
+```bash
+make install
+make lint-check
+make type-check
+make build
+```
