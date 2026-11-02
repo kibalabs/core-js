@@ -1,9 +1,6 @@
 import React from 'react';
 
-import { createBaseAccountSDK } from '@base-org/account';
-import { base, mainnet } from '@reown/appkit/networks';
-import { createAppKit, useAppKit, useAppKitAccount, useAppKitProvider } from '@reown/appkit/react';
-import { EthersAdapter as ReownEthersAdapter } from '@reown/appkit-adapter-ethers';
+import type { AppKit } from '@reown/appkit/react';
 import { BrowserProvider, Eip1193Provider, BrowserProvider as EthersBrowserProvider } from 'ethers';
 
 import { dateToString, generateRandomString, LocalStorageClient } from '..';
@@ -61,104 +58,86 @@ interface IWeb3AccountControlProviderProps extends IMultiAnyChildProps {
 }
 
 let isReownInitializedGlobally = false;
+let reownConfig: IReownConfig | null = null;
+
+// NOTE(krishan711): reown and the base account sdk are large (with the libraries they use they're most
+// of an app's web3 code), so they're only loaded when they're needed: when restoring a session that uses
+// them, when they're used to log in, or in the background once it's clear the user isn't logged in (so
+// logging in with them is instant, and popups still open straight from the click).
+type ReownModule = typeof import('./reown');
+type CreateBaseAccountSdk = typeof import('@base-org/account').createBaseAccountSDK;
+
+let reownModulePromise: Promise<ReownModule> | null = null;
+let loadedReownModule: ReownModule | null = null;
+let reownAppKit: AppKit | null = null;
+const reownModuleListeners = new Set<() => void>();
+
+const loadReown = (): Promise<ReownModule> => {
+  if (!reownConfig) {
+    return Promise.reject(new Error('Reown has not been initialized, pass a reownConfig to web3Initialize'));
+  }
+  if (!reownModulePromise) {
+    const config = reownConfig;
+    reownModulePromise = import('./reown').then((reownModule: ReownModule): ReownModule => {
+      reownAppKit = reownModule.createReownAppKit(config);
+      loadedReownModule = reownModule;
+      reownModuleListeners.forEach((listener: () => void): void => listener());
+      return reownModule;
+    });
+    // NOTE(krishan711): allow retrying if loading failed (e.g. a network error)
+    reownModulePromise.catch((): void => {
+      reownModulePromise = null;
+    });
+  }
+  return reownModulePromise;
+};
+
+const subscribeToReownModule = (listener: () => void): (() => void) => {
+  reownModuleListeners.add(listener);
+  return (): void => {
+    reownModuleListeners.delete(listener);
+  };
+};
+
+const getLoadedReownModule = (): ReownModule | null => loadedReownModule;
+
+const getServerReownModule = (): ReownModule | null => null;
+
+let createBaseAccountSdkPromise: Promise<CreateBaseAccountSdk> | null = null;
+let loadedCreateBaseAccountSdk: CreateBaseAccountSdk | null = null;
+
+const loadBaseAccount = (): Promise<CreateBaseAccountSdk> => {
+  if (!createBaseAccountSdkPromise) {
+    // NOTE(krishan711): destructuring the import lets bundlers tree-shake the parts of the sdk that aren't used
+    createBaseAccountSdkPromise = import('@base-org/account').then(({ createBaseAccountSDK }): CreateBaseAccountSdk => {
+      loadedCreateBaseAccountSdk = createBaseAccountSDK;
+      return createBaseAccountSDK;
+    });
+    createBaseAccountSdkPromise.catch((): void => {
+      createBaseAccountSdkPromise = null;
+    });
+  }
+  return createBaseAccountSdkPromise;
+};
+
+const runWhenIdle = (callback: () => void): (() => void) => {
+  if (typeof window.requestIdleCallback === 'function') {
+    const idleCallbackId = window.requestIdleCallback(callback, { timeout: 3000 });
+    return (): void => window.cancelIdleCallback(idleCallbackId);
+  }
+  const timeoutId = setTimeout(callback, 1000);
+  return (): void => clearTimeout(timeoutId);
+};
 
 export const web3Initialize = (config: IWeb3Config): void => {
   if (typeof window === 'undefined') {
     return;
   }
   if (config.reownConfig && !isReownInitializedGlobally) {
-    createAppKit({
-      adapters: [new ReownEthersAdapter()],
-      networks: [mainnet, base],
-      projectId: config.reownConfig.projectId,
-      metadata: {
-        name: config.reownConfig.name,
-        description: config.reownConfig.description,
-        url: config.reownConfig.url,
-        icons: config.reownConfig.icons,
-      },
-      features: {
-        analytics: true,
-      },
-    });
+    reownConfig = config.reownConfig;
     isReownInitializedGlobally = true;
   }
 };
-
-interface IAppKitSyncProps {
-  localStorageClient: LocalStorageClient;
-  setEip1193Provider: (provider: Eip1193Provider | null) => void;
-  setWeb3Account: (account: Web3Account | null) => void;
-  setWeb3ChainId: (chainId: number) => void;
-}
-
-function AppKitSync(props: IAppKitSyncProps): React.ReactElement | null {
-  const appKitAccount = useAppKitAccount();
-  const appKitProviderResult = useAppKitProvider('eip155');
-  const hasSetAccountRef = React.useRef(false);
-  const noSessionTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Handle the case when Reown has no session - use a timeout to avoid race conditions
-  // Reown initially reports isConnected=false before it finishes restoring the session
-  React.useEffect((): (() => void) => {
-    const savedRdns = props.localStorageClient.getValue('web3Account-chosenEip1193ProviderRdns');
-    // Only set up the timeout if we're expecting a reown session and haven't already set up the account
-    if (savedRdns !== 'reown' || hasSetAccountRef.current) {
-      return (): void => {};
-    }
-    // If already connected, no need for timeout
-    if (appKitAccount?.isConnected) {
-      if (noSessionTimeoutRef.current) {
-        clearTimeout(noSessionTimeoutRef.current);
-        noSessionTimeoutRef.current = null;
-      }
-      return (): void => {};
-    }
-    // Set a timeout - if we don't get connected within this time, assume no session
-    noSessionTimeoutRef.current = setTimeout(() => {
-      // Double-check we still haven't connected
-      if (!hasSetAccountRef.current) {
-        props.localStorageClient.removeValue('web3Account-chosenEip1193ProviderRdns');
-        props.setWeb3Account(null);
-      }
-    }, 3000); // 3 second timeout to allow Reown to restore session
-    return (): void => {
-      if (noSessionTimeoutRef.current) {
-        clearTimeout(noSessionTimeoutRef.current);
-        noSessionTimeoutRef.current = null;
-      }
-    };
-  }, [appKitAccount?.isConnected, props]);
-
-  React.useEffect((): void => {
-    if (!appKitAccount?.isConnected || !appKitAccount?.address || !appKitProviderResult?.walletProvider) {
-      return;
-    }
-    if (hasSetAccountRef.current) {
-      return;
-    }
-    if (noSessionTimeoutRef.current) {
-      clearTimeout(noSessionTimeoutRef.current);
-      noSessionTimeoutRef.current = null;
-    }
-    // Mark as set immediately to prevent duplicate calls
-    hasSetAccountRef.current = true;
-    const walletProvider = appKitProviderResult.walletProvider as Eip1193Provider;
-    props.setEip1193Provider(walletProvider);
-    props.localStorageClient.setValue('web3Account-chosenEip1193ProviderRdns', 'reown');
-    const syncAccount = async (): Promise<void> => {
-      const browserProvider = new EthersBrowserProvider(walletProvider);
-      const signer = await browserProvider.getSigner();
-      const address = await signer.getAddress();
-      props.setWeb3Account({ address, signer });
-      const chainIdHex = await browserProvider.send('eth_chainId', []);
-      props.setWeb3ChainId(Number(chainIdHex));
-    };
-    syncAccount();
-  }, [appKitAccount?.isConnected, appKitAccount?.address, appKitProviderResult?.walletProvider, props]);
-
-  return null;
-}
 
 interface ISafeSyncProps {
   localStorageClient: LocalStorageClient;
@@ -232,6 +211,31 @@ export function Web3AccountControlProvider(props: IWeb3AccountControlProviderPro
   const providersRef = React.useRef<Eip6963ProviderDetail[] | undefined>(undefined);
   providersRef.current = providers;
   const onError = props.onError;
+  const reownModule = React.useSyncExternalStore(subscribeToReownModule, getLoadedReownModule, getServerReownModule);
+
+  React.useEffect((): void => {
+    if (isReownInitializedGlobally && savedProviderRdns === 'reown') {
+      loadReown().catch((error: unknown): void => {
+        console.error('Failed to load reown:', error);
+      });
+    }
+  }, [savedProviderRdns]);
+
+  React.useEffect((): (() => void) | undefined => {
+    if (web3Account !== null) {
+      return undefined;
+    }
+    return runWhenIdle((): void => {
+      if (isReownInitializedGlobally) {
+        loadReown().catch((error: unknown): void => {
+          console.error('Failed to load reown:', error);
+        });
+      }
+      loadBaseAccount().catch((error: unknown): void => {
+        console.error('Failed to load the base account sdk:', error);
+      });
+    });
+  }, [web3Account]);
 
   const chooseEip1193Provider = React.useCallback((eip1193ProviderRdns: string): void => {
     if (eip1193Provider != null) {
@@ -311,6 +315,13 @@ export function Web3AccountControlProvider(props: IWeb3AccountControlProviderPro
     const baseConnectionString = props.localStorageClient.getValue('web3Account-baseConnection');
     if (!baseConnectionString) {
       props.localStorageClient.removeValue('web3Account-chosenEip1193ProviderRdns');
+      return false;
+    }
+    let createBaseAccountSDK: CreateBaseAccountSdk;
+    try {
+      createBaseAccountSDK = loadedCreateBaseAccountSdk ?? await loadBaseAccount();
+    } catch (error: unknown) {
+      console.error('Failed to load the base account sdk:', error);
       return false;
     }
     try {
@@ -524,6 +535,14 @@ export function Web3AccountControlProvider(props: IWeb3AccountControlProviderPro
   }, [web3Account, loginCount, props.localStorageClient]);
 
   const onWeb3BaseLoginClicked = React.useCallback(async (chainId: number, statement: string, appName: string, appLogoUrl: string): Promise<Web3LoginSignature | null> => {
+    let createBaseAccountSDK: CreateBaseAccountSdk;
+    try {
+      // NOTE(krishan711): use the loaded sdk without awaiting so its popup still opens straight from the user's click
+      createBaseAccountSDK = loadedCreateBaseAccountSdk ?? await loadBaseAccount();
+    } catch (error: unknown) {
+      console.error('Sign in failed:', error);
+      return null;
+    }
     const sdk = createBaseAccountSDK({
       appName,
       appLogoUrl,
@@ -618,8 +637,8 @@ export function Web3AccountControlProvider(props: IWeb3AccountControlProviderPro
 
   return (
     <Web3AccountContext.Provider value={providerValue}>
-      {isReownInitializedGlobally && (
-        <AppKitSync
+      {reownModule && (
+        <reownModule.AppKitSync
           localStorageClient={props.localStorageClient}
           setEip1193Provider={setEip1193Provider}
           setWeb3Account={setWeb3Account}
@@ -680,10 +699,10 @@ export const useWeb3OnBaseLoginClicked = (): ((chainId: number, statement: strin
 };
 
 export const useWeb3OnReownLoginClicked = (): (() => Promise<void>) => {
-  const { open } = useAppKit();
   const openModal = React.useCallback(async (): Promise<void> => {
-    await open();
-  }, [open]);
+    await loadReown();
+    await reownAppKit?.open();
+  }, []);
   return openModal;
 };
 
