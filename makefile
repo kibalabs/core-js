@@ -30,7 +30,7 @@ security-check-ci:
 	@ echo "Not Supported"
 
 build:
-	@ NODE_ENV=production npx build-module-rolldown
+	@ NODE_ENV=production npx build-module-rolldown --config-modifier ./config.build.js
 
 build-ssr:
 	@ echo "Not Supported"
@@ -39,10 +39,10 @@ build-static:
 	@ echo "Not Supported"
 
 start:
-	@ NODE_ENV=development npx build-module-rolldown --start
+	@ NODE_ENV=development npx build-module-rolldown --config-modifier ./config.build.js --start
 
 start-prod:
-	@ NODE_ENV=production npx build-module-rolldown --start
+	@ NODE_ENV=production npx build-module-rolldown --config-modifier ./config.build.js --start
 
 test:
 	@ echo "Not Supported"
