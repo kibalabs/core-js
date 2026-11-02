@@ -8,11 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 ## [Unreleased]
 
 ### Added
+- [MAJOR] Added `@kibalabs/core/react` (all of `@kibalabs/core-react`) and `@kibalabs/core/web3` (all of `@kibalabs/web3-react`) with their libraries as optional peer dependencies
+- [MINOR] Added `@kibalabs/core/node` with `copyFileSync` and `copyDirectorySync`
 - [MINOR] Added streaming functions to Requester and ServiceClient
 
 ### Changed
 
 ### Removed
+- [MAJOR] Removed `copyFileSync` and `copyDirectorySync` from the main entry (use `@kibalabs/core/node`)
 
 ## [0.7.1] - 2026-01-29
 
