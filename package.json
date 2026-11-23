@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "@base-org/account": "2.6.0",
-    "@kibalabs/build": "0.14.2-next.18",
+    "@kibalabs/build": "0.14.2-next.19",
     "@reown/appkit": "1.8.24",
     "@reown/appkit-adapter-ethers": "1.8.24",
     "@safe-global/safe-apps-provider": "0.18.6",
