@@ -313,7 +313,7 @@ export function Web3AccountControlProvider(props: IWeb3AccountControlProviderPro
           rdns: 'ethers',
         },
         // @ts-ignore
-        provider: (window.ethereum as Eip1193Provider),
+        provider: window.ethereum as Eip1193Provider,
       };
       setProviders((prevProviders: Eip6963ProviderDetail[] | undefined): Eip6963ProviderDetail[] => {
         const previousProviders = prevProviders ?? [];

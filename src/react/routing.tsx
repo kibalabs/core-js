@@ -120,7 +120,7 @@ export interface IRoute<IGlobals> {
   getPageData?: (globals: IGlobals, params: Record<string, string>) => Promise<unknown | null>;
 }
 
-const routeToReactRoute = <IGlobals, >(route: IRoute<IGlobals>): ReactRouteObject => {
+const routeToReactRoute = <IGlobals,>(route: IRoute<IGlobals>): ReactRouteObject => {
   return {
     path: route.path,
     caseSensitive: false,
@@ -140,7 +140,7 @@ export interface ISubRouterProps<IGlobals> {
   routes: IRoute<IGlobals>[];
 }
 
-export const SubRouter = <IGlobals, >(props: ISubRouterProps<IGlobals>): React.ReactElement | null => {
+export const SubRouter = <IGlobals,>(props: ISubRouterProps<IGlobals>): React.ReactElement | null => {
   const routes = React.useMemo((): ReactRouteObject[] => {
     return props.routes.map((route: IRoute<IGlobals>): ReactRouteObject => {
       return routeToReactRoute(route);
@@ -168,7 +168,7 @@ export interface IRouterProps<IGlobals> extends IMultiAnyChildProps {
   basePath?: string;
 }
 
-export function Router<IGlobals, >(props: IRouterProps<IGlobals>): React.ReactElement {
+export function Router<IGlobals,>(props: IRouterProps<IGlobals>): React.ReactElement {
   const internals = (
     <CoreRoutingEnabledContext.Provider value={true}>
       <RouterAuthManagerContext.Provider value={props.authManager}>

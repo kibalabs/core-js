@@ -21,7 +21,8 @@ export const generateUUID = (shouldIncludeDashes = true): string => {
       uuid.substring(8, 12),
       uuid.substring(12, 16),
       uuid.substring(16, 20),
-      uuid.substring(20)]
+      uuid.substring(20),
+    ]
       .join('-');
   }
   return uuid;
